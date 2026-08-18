@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ScoutAI Capture</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 400px;
+      height: 300px;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    #status {
+      font-size: 16px;
+      padding: 0 20px;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">Capturing...</div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+
+    // NOTE: this accepts a postMessage from ANY origin. This is fine for a
+    // personal tool, but if this is ever exposed more broadly, lock this
+    // down to a specific expected opener origin (e.g. check event.origin
+    // against an allowlist) before trusting event.data.
+    window.addEventListener("message", async (event) => {
+      const data = event.data;
+
+      if (!data || typeof data.text !== "string" || typeof data.url !== "string" || typeof data.title !== "string") {
+        statusEl.textContent = "❌ Invalid capture data";
+        setTimeout(() => window.close(), 3000);
+        return;
+      }
+
+      try {
+        const res = await fetch("/capture", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: data.text, url: data.url, title: data.title }),
+        });
+
+        const result = await res.json();
+
+        if (result.success === true) {
+          statusEl.textContent = "✅ Saved: " + result.message;
+        } else {
+          statusEl.textContent = "❌ " + result.error;
+        }
+      } catch (err) {
+        statusEl.textContent = "❌ Could not reach ScoutAI server";
+      }
+
+      setTimeout(() => window.close(), 3000);
+    });
+  </script>
+</body>
+</html>

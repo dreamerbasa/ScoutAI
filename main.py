@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 from notion_service import (
@@ -46,6 +46,11 @@ def _detect_source(url: str) -> str:
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/relay")
+def relay():
+    return FileResponse("relay.html")
 
 
 @app.post("/capture", status_code=201)
