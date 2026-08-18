@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from notion_client import APIResponseError, Client
@@ -43,6 +44,9 @@ def create_application(
                 "Company": {"rich_text": [{"text": {"content": company}}]},
                 "URL": {"url": url},
                 "Source": {"select": {"name": source}},
+                "Captured At": {
+                    "date": {"start": datetime.now(timezone.utc).isoformat()}
+                },
             },
         )
     except APIResponseError as e:
@@ -58,23 +62,6 @@ def create_application(
             raise NotionRateLimitError("Notion rate limit exceeded — try again later") from e
         raise
 
-    page_id = page["id"]
+    # Raw text not stored in M1 — full text sent to LLM for extraction in M2
 
-    if raw_text:
-        if len(raw_text) > 2000:
-            raw_text = raw_text[:1997] + "..."
-
-        client.blocks.children.append(
-            block_id=page_id,
-            children=[
-                {
-                    "object": "block",
-                    "type": "paragraph",
-                    "paragraph": {
-                        "rich_text": [{"type": "text", "text": {"content": raw_text}}]
-                    },
-                }
-            ],
-        )
-
-    return page_id
+    return page["id"]
