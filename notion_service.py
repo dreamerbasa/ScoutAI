@@ -60,17 +60,21 @@ def create_application(
 
     page_id = page["id"]
 
-    client.blocks.children.append(
-        block_id=page_id,
-        children=[
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": raw_text}}]
-                },
-            }
-        ],
-    )
+    if raw_text:
+        if len(raw_text) > 2000:
+            raw_text = raw_text[:1997] + "..."
+
+        client.blocks.children.append(
+            block_id=page_id,
+            children=[
+                {
+                    "object": "block",
+                    "type": "paragraph",
+                    "paragraph": {
+                        "rich_text": [{"type": "text", "text": {"content": raw_text}}]
+                    },
+                }
+            ],
+        )
 
     return page_id
